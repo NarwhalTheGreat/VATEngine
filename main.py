@@ -39,7 +39,7 @@ query = text("""
 # Run query 1
 eventOrderDf1 = pd.read_sql(query.bindparams(catalog_id=catalog_id), connection)
 
-# All orders in a string for the next query
+# All orders in a string for the next query f
 allOrders = '\n'.join(eventOrderDf1['OrderInfo'].astype(str))
 
 print(eventOrderDf1)
