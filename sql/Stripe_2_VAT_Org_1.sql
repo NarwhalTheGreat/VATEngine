@@ -9,8 +9,7 @@ select  o."OrderId",
 		o."CreatedOn",
 		o."Amount",
 		o."Discount",
-		'(''' || o."OrderId" || ''', ''' || o."Number" || ''', ''' || o."Email" || ''', ''' || o."CreatedOn" || ''', ''' || o."Amount" || ''', ''' || o."Discount" || '''),'
-from "Order" o 
+        '(''' || o."OrderId" || ''', ''' || o."Number" || ''', ''' || o."Email" || ''', ''' || o."CreatedOn" || ''', ''' || o."Amount" || ''', ''' || o."Discount" || '''),' as "OrderInfo"from "Order" o
 join "OrderItem" oi on oi."OrderId" = o."OrderId" 
 join "Catalog" c on c."CatalogId" = oi."CatalogId" 
 where oi."CatalogId" = '57815a0f-2be4-4247-90dc-c25b85c04746'
