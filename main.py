@@ -21,7 +21,6 @@ if (option == "1"):
 
 elif (option == "2"):
     print("Date Start (inclusive) (yyyy-mm-dd):")
-    # '7ef69632-0ff6-48ba-b0d2-c53b5c4a7c7c'
     date_from = input()
     print("Date End (exclusive) (yyyy-mm-dd):")
     date_to = input()

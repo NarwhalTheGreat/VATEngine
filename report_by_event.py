@@ -116,32 +116,44 @@ and p."GatewayId" = 'stripe'
     # Query n3
 
     query3 = text(f"""
--- DB host: 10.10.2.42
--- DB: witisi-stripe
-
-select  o."OrderId",
-		o."Number",
-		o."Email",
-		o."CreatedOn",
-		o."PaymentId",
-		replace(o."Amount"::text, '.', ',') as "OrderAmount",
-		replace(o."Discount"::text, '.', ',') as "OrderDiscount",
-		p."CurrencyId",
-		p2."IssuerCountry" as "Country",
-		p3."PaymentIntentId" as "IntentId",
-		'{catalog_name}' as "AlbumTitle",
-		replace(p."Amount"::text, '.', ',') as "PaymentAmount"
-from (values
--- data begin
+        SELECT  o."OrderId",
+        o."Number",
+        o."Email",
+        o."CreatedOn",
+        o."PaymentId",
+        replace(o."Amount"::text, '.', ',')    as "OrderAmount",
+        replace(o."Discount"::text, '.', ',')  as "OrderDiscount",
+        p."CurrencyId",
+        p2."IssuerCountry"                     as "Country",
+        p3."PaymentIntentId",
+        replace(p."Amount"::text, '.', ',')    as "PaymentAmount",
+        cv."Vat"                               as "VatPercent",
+        -- Regular VAT: extracted from VAT-inclusive price
+        replace(
+            round(
+                p."Amount" / (100 + cv."Vat") * cv."Vat", 2
+            )::text, '.', ','
+        )                                      as "VatAmount",
+        -- Business VAT: calculated on top of VAT-exclusive price
+        -- only applies when Attributes is not null (Business Card payments)
+        replace(
+            case 
+                when p."Attributes" is not null 
+                then round(p."Amount" / 100 * cv."Vat", 2)
+                else 0
+            end::text, '.', ','
+        )                                      as "BusinessVatAmount",
+        p."Attributes"
+FROM (VALUES
     {all_accepted_orders}
--- data end
-	 ) as o("OrderId", "Number", "Email", "CreatedOn", "PaymentId", "Amount", "Discount", "PaymentAmount")
-		 join "Payment" p on p."PaymentId"::text = o."PaymentId"
-		 join "CardPayment" p2 on p."PaymentId" = p2."PaymentId"
-		 join "ChargedPayment" p3 on p."PaymentId" = p3."PaymentId"
-""")
+) as o("OrderId", "Number", "Email", "CreatedOn", "PaymentId", "Amount", "Discount", "PaymentAmount")
+    JOIN "Payment" p         ON p."PaymentId"::text = o."PaymentId"
+    JOIN "CardPayment" p2    ON p."PaymentId" = p2."PaymentId"
+    JOIN "ChargedPayment" p3 ON p."PaymentId" = p3."PaymentId"
+    LEFT JOIN "CountryVat" cv ON cv."CountryCode" = p2."IssuerCountry"
+    """)
 
-    # Run query 2
+    # Run query 3
     df3 = pd.read_sql(query3, connection_stripe)
 
     connection_stripe.close()
