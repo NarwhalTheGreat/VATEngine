@@ -100,7 +100,6 @@ and p."GatewayId" = 'stripe'
 
     # Run query 2
     df2 = pd.read_sql(query2, connection_invoicing)
-    df2.to_csv("data/data2date.csv")
 
     connection_invoicing.close()
     engine_invoicing.dispose()
@@ -183,10 +182,5 @@ and p."GatewayId" = 'stripe'
     connection_stripe.close()
     engine_stripe.dispose()
 
-    # Insert empty row after row 1
-    empty_rows = pd.DataFrame([[np.nan] * len(df3.columns)], columns=df3.columns)
 
-    df3 = pd.concat([empty_rows, df3]).reset_index(drop=True)
-
-    df3.to_csv("data/data3date.csv", index=False)
-
+    return df3

@@ -101,7 +101,6 @@ and p."GatewayId" = 'stripe'
 
     # Run query 2
     df2 = pd.read_sql(query2, connection_invoicing)
-    df2.to_csv("data/data2.csv")
 
     connection_invoicing.close()
     engine_invoicing.dispose()
@@ -159,14 +158,5 @@ FROM (VALUES
     connection_stripe.close()
     engine_stripe.dispose()
 
-    # Cleanup for excel
 
-    # Insert empty row after row 1
-    empty_rows = pd.DataFrame([[np.nan] * len(df3.columns)] * 2, columns=df3.columns)
-    #bottom = df3.iloc[0:]
-
-    df3 = pd.concat([empty_rows, df3]).reset_index(drop=True)
-
-
-    df3.to_csv("data/data3.csv", index=False)
-
+    return df3
