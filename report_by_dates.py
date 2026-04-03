@@ -151,21 +151,14 @@ and p."GatewayId" = 'stripe'
             p3."PaymentIntentId",
             replace(p."Amount"::text, '.', ',')    as "PaymentAmount",
             cv."Vat"                               as "VatPercent",
-            -- Regular VAT: extracted from VAT-inclusive price
+            -- If Business Card payment use Business VAT formula, otherwise use regular VAT formula
             replace(
-                round(
-                    p."Amount" / (100 + cv."Vat") * cv."Vat", 2
-                )::text, '.', ','
-            )                                      as "VatAmount",
-            -- Business VAT: calculated on top of VAT-exclusive price
-            -- only applies when Attributes is not null (Business Card payments)
-            replace(
-                case 
-                    when p."Attributes" is not null 
+                case
+                    when p."Attributes" is not null
                     then round(p."Amount" / 100 * cv."Vat", 2)
-                    else 0
+                    else round(p."Amount" / (100 + cv."Vat") * cv."Vat", 2)
                 end::text, '.', ','
-            )                                      as "BusinessVatAmount",
+            )                                      as "VatAmount",
             p."Attributes"
     FROM (VALUES
         {all_accepted_orders}

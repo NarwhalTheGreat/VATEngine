@@ -115,42 +115,35 @@ and p."GatewayId" = 'stripe'
     # Query n3
 
     query3 = text(f"""
-        SELECT  o."OrderId",
-        o."Number",
-        o."Email",
-        o."CreatedOn",
-        o."PaymentId",
-        replace(o."Amount"::text, '.', ',')    as "OrderAmount",
-        replace(o."Discount"::text, '.', ',')  as "OrderDiscount",
-        p."CurrencyId",
-        p2."IssuerCountry"                     as "Country",
-        p3."PaymentIntentId",
-        replace(p."Amount"::text, '.', ',')    as "PaymentAmount",
-        cv."Vat"                               as "VatPercent",
-        -- Regular VAT: extracted from VAT-inclusive price
-        replace(
-            round(
-                p."Amount" / (100 + cv."Vat") * cv."Vat", 2
-            )::text, '.', ','
-        )                                      as "VatAmount",
-        -- Business VAT: calculated on top of VAT-exclusive price
-        -- only applies when Attributes is not null (Business Card payments)
-        replace(
-            case 
-                when p."Attributes" is not null 
-                then round(p."Amount" / 100 * cv."Vat", 2)
-                else 0
-            end::text, '.', ','
-        )                                      as "BusinessVatAmount",
-        p."Attributes"
-FROM (VALUES
-    {all_accepted_orders}
-) as o("OrderId", "Number", "Email", "CreatedOn", "PaymentId", "Amount", "Discount", "PaymentAmount")
-    JOIN "Payment" p         ON p."PaymentId"::text = o."PaymentId"
-    JOIN "CardPayment" p2    ON p."PaymentId" = p2."PaymentId"
-    JOIN "ChargedPayment" p3 ON p."PaymentId" = p3."PaymentId"
-    LEFT JOIN "CountryVat" cv ON cv."CountryCode" = p2."IssuerCountry"
-    """)
+            SELECT  o."OrderId",
+            o."Number",
+            o."Email",
+            o."CreatedOn",
+            o."PaymentId",
+            replace(o."Amount"::text, '.', ',')    as "OrderAmount",
+            replace(o."Discount"::text, '.', ',')  as "OrderDiscount",
+            p."CurrencyId",
+            p2."IssuerCountry"                     as "Country",
+            p3."PaymentIntentId",
+            replace(p."Amount"::text, '.', ',')    as "PaymentAmount",
+            cv."Vat"                               as "VatPercent",
+            -- If Business Card payment use Business VAT formula, otherwise use regular VAT formula
+            replace(
+                case
+                    when p."Attributes" is not null
+                    then round(p."Amount" / 100 * cv."Vat", 2)
+                    else round(p."Amount" / (100 + cv."Vat") * cv."Vat", 2)
+                end::text, '.', ','
+            )                                      as "VatAmount",
+            p."Attributes"
+    FROM (VALUES
+        {all_accepted_orders}
+    ) as o("OrderId", "Number", "Email", "CreatedOn", "PaymentId", "Amount", "Discount", "PaymentAmount")
+        JOIN "Payment" p         ON p."PaymentId"::text = o."PaymentId"
+        JOIN "CardPayment" p2    ON p."PaymentId" = p2."PaymentId"
+        JOIN "ChargedPayment" p3 ON p."PaymentId" = p3."PaymentId"
+        LEFT JOIN "CountryVat" cv ON cv."CountryCode" = p2."IssuerCountry"
+        """)
 
     # Run query 3
     df3 = pd.read_sql(query3, connection_stripe)

@@ -48,7 +48,7 @@ try:
     total_path = os.path.join(base_path, 'summary_by_country.csv')
 
 
-    for col in ['PaymentAmount', 'VatAmount', 'BusinessVatAmount']:
+    for col in ['PaymentAmount', 'VatAmount']:
         result[col] = result[col].astype(str).str.replace(',', '.').astype(float)
 
     # ── Group by country and aggregate ───────────────────────────────────────────
@@ -56,13 +56,11 @@ try:
         PaymentCount=('PaymentAmount', 'count'),  # number of entries grouped
         PaymentAmount=('PaymentAmount', 'sum'),  # total payment amount
         VatAmount=('VatAmount', 'sum'),  # total VAT amount
-        BusinessVatAmount=('BusinessVatAmount', 'sum')  # total business VAT amount
     ).reset_index()
 
     # ── Round the totals to 2 decimal places ─────────────────────────────────────
     summary['PaymentAmount'] = summary['PaymentAmount'].round(2)
     summary['VatAmount'] = summary['VatAmount'].round(2)
-    summary['BusinessVatAmount'] = summary['BusinessVatAmount'].round(2)
 
     # ── Sort alphabetically by country ───────────────────────────────────────────
     summary = summary.sort_values('Country').reset_index(drop=True)
