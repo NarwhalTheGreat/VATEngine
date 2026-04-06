@@ -1,14 +1,10 @@
-import numpy as np
-import pandas as pd
-from numpy.f2py.auxfuncs import throw_error
-from sqlalchemy import create_engine, text
 import report_by_event
 import report_by_dates
 import os
 import sys
 
 try:
-    print("what would you like to do? \n 1 for Report by event \n 2 for Report by date")
+    print("What would you like to do? \n 1 for Report by event \n 2 for Report by date")
     option = input()
     print("Please provide the hostname")
     hostname = input()
@@ -54,8 +50,8 @@ try:
     # ── Group by country and aggregate ───────────────────────────────────────────
     summary = result.groupby('Country').agg(
         PaymentCount=('PaymentAmount', 'count'),  # number of entries grouped
-        PaymentAmount=('PaymentAmount', 'sum'),  # total payment amount
-        VatAmount=('VatAmount', 'sum'),  # total VAT amount
+        PaymentAmount=('PaymentAmount', 'sum'),
+        VatAmount=('VatAmount', 'sum'),
     ).reset_index()
 
     # ── Round the totals to 2 decimal places ─────────────────────────────────────

@@ -125,6 +125,7 @@ and p."GatewayId" = 'stripe'
             p."CurrencyId",
             p2."IssuerCountry"                     as "Country",
             p3."PaymentIntentId",
+            '{catalog_name}' as "AlbumTitle",
             replace(p."Amount"::text, '.', ',')    as "PaymentAmount",
             cv."Vat"                               as "VatPercent",
             -- If Business Card payment use Business VAT formula, otherwise use regular VAT formula
